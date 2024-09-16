@@ -1,0 +1,73 @@
+<div class="container mt-4">
+    <!-- Barcode Generation Form -->
+    <div class="card card-sm">
+        <div class="card-header d-flex justify-content-between">
+            <h4 class="card-title">Barcode Generator</h4>
+            <div>
+                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#barcodeCountsModal">
+                    View Barcode Counts
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <form (ngSubmit)="generateBarcodes()">
+                <div class="form-group">
+                    <label class="form-label" for="productSelect">Select Product</label>
+                    <select id="productSelect" class="form-control form-control-sm" [(ngModel)]="selectedProductCode" name="selectedProductCode" required>
+                        <option *ngFor="let product of products" [value]="product.code">
+                            {{ product.name }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group mt-2">
+                    <label class="form-label" for="barcodeCount">Number of Barcodes</label>
+                    <input id="barcodeCount" type="number" class="form-control form-control-sm" [(ngModel)]="numberOfBarcodes" name="numberOfBarcodes" min="1" required>
+                </div>
+
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-primary btn-sm">Generate Barcodes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Download Barcodes Section -->
+    <div *ngIf="generatedBarcodes.length > 0" class="my-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                <h4 class="card-title">Generated Barcodes</h4>
+                <!-- Centered Download Button -->
+                <div>
+                    <button class="btn btn-success btn-sm" (click)="generatePDF()">Download PDF</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div *ngFor="let barcode of generatedBarcodes; let i = index" class="col-md-3 mb-2">
+                        <canvas [attr.id]="'barcodeCanvas' + i"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Counts Modal -->
+    <div class="modal fade" id="barcodeCountsModal" tabindex="-1" aria-labelledby="barcodeCountsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="barcodeCountsModalLabel">Total Barcode Counts</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        <li class="list-group-item" *ngFor="let count of barcodeCounts">
+                            {{ count.productName }}: {{ count.count }} barcodes
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

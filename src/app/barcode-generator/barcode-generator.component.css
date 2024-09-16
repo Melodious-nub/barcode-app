@@ -1,0 +1,24 @@
+/* Custom styles for barcode generator */
+.card-sm {
+    max-width: 500px; /* Set a maximum width for the card */
+    margin: auto; /* Center the card horizontally */
+  }
+  
+  .card-header {
+    background-color: #f8f9fa;
+  }
+  
+  .card-body {
+    background-color: #ffffff;
+  }
+  
+  button {
+    border-radius: 4px;
+  }
+  
+  canvas {
+    width: 100% !important; /* Ensure the canvas fills the column */
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+  }
+  
