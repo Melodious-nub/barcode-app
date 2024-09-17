@@ -28,8 +28,13 @@ export class BarcodeGeneratorComponent {
     { name: 'Product 3', code: 'P003' }
   ];
 
+  // Form fields
+  companyName: string = 'Abc Company'; // Prefilled with default company name
+  count: string = ''; // User input count
+  lot: string = ''; // User input lot number
+  selectedDate: string = ''; // Date selected by the user
   selectedProductCode: string = '';
-  numberOfBarcodes: number = 1;
+  numberOfBarcodes: number = 1; // Number of barcodes to generate
   generatedBarcodes: string[] = []; // Store generated barcodes
   barcodeCounts: BarcodeCount[] = []; // Store barcode counts by product
   barcodesGenerated: boolean = false;
@@ -56,8 +61,8 @@ export class BarcodeGeneratorComponent {
 
   // Generate barcodes based on user input
   generateBarcodes() {
-    if (!this.selectedProductCode || this.numberOfBarcodes <= 0) {
-      console.error("Invalid product code or number of barcodes!");
+    if (!this.selectedProductCode || this.numberOfBarcodes <= 0 || !this.companyName || !this.count || !this.lot || !this.selectedDate) {
+      console.error("Please fill all the required fields!");
       return;
     }
 
@@ -72,9 +77,11 @@ export class BarcodeGeneratorComponent {
     // Generate barcodes
     this.generatedBarcodes = [];
     const startNumber = selectedProduct.lastNumber || 0;
+
     for (let i = 0; i < this.numberOfBarcodes; i++) {
       const barcodeNumber = startNumber + i + 1;
-      const barcodeCode = `${selectedProduct.code}-${barcodeNumber.toString().padStart(2, '0')}`;
+      // Combine all fields into the final barcode format
+      const barcodeCode = `${this.companyName}-${selectedProduct.code}-${barcodeNumber.toString().padStart(2, '0')}-${this.count}-${this.lot}-${this.selectedDate}-${this.numberOfBarcodes}`;
       this.generatedBarcodes.push(barcodeCode);
     }
 
@@ -84,7 +91,7 @@ export class BarcodeGeneratorComponent {
 
     // Update barcode count and localStorage
     this.updateBarcodeCount(selectedProduct.name, this.numberOfBarcodes);
-    
+
     // Disable the form after generation
     this.barcodesGenerated = true;
 
@@ -106,6 +113,9 @@ export class BarcodeGeneratorComponent {
     this.selectedProductCode = '';
     this.numberOfBarcodes = 1;
     this.barcodesGenerated = false;
+    this.count = '';
+    this.lot = '';
+    this.selectedDate = '';
   }
 
   // Render the barcodes on canvas elements
@@ -117,8 +127,8 @@ export class BarcodeGeneratorComponent {
           format: 'CODE39',
           displayValue: true,
           width: 1, // Narrower lines for smaller size
-          height: 25, // Shorter height
-          fontSize: 10, // Smaller font size
+          height: 30, // Shorter height
+          fontSize: 18, // Smaller font size
           background: "#f5f5f5"
         });
       }
@@ -126,99 +136,50 @@ export class BarcodeGeneratorComponent {
   }
 
   // Generate PDF with all barcodes
-  generatePDF() {
-    const doc = new jsPDF();
-    const margin = 10;
-    const pageWidth = doc.internal.pageSize.width;
-    const colWidth = (pageWidth - 3 * margin) / 2; // Two columns with margins
-    let x = margin;
-    let y = margin;
-    const barcodeHeight = 25; // Adjust height for smaller barcode
-    const barcodeWidth = colWidth - margin; // Adjust width for smaller barcode
+// Generate PDF with all barcodes in one column
+generatePDF() {
+  const doc = new jsPDF();
+  const margin = 10;
+  const pageWidth = doc.internal.pageSize.width;
+  const barcodeHeight = 30; // Height of each barcode
+  const barcodeWidth = pageWidth - 2 * margin; // Full page width minus margins
 
-    // Add barcodes to PDF
-    this.generatedBarcodes.forEach((code, index) => {
-      const canvas = document.createElement('canvas');
-      JsBarcode(canvas, code, {
-        format: 'CODE39',
-        displayValue: true,
-        width: 1, // Narrower lines for smaller size
-        height: barcodeHeight, // Shorter height
-        fontSize: 12, // Smaller font size
-        background: "#f5f5f5",
-      });
+  let y = margin; // Start position for vertical alignment
 
-      const imgData = canvas.toDataURL('image/png');
-
-      // Add image to PDF
-      doc.addImage(imgData, 'PNG', x, y, barcodeWidth, barcodeHeight);
-
-      // Update x and y for next barcode
-      if (index % 2 === 0) {
-        x += colWidth; // Move to the next column
-      } else {
-        x = margin; // Reset to the first column
-        y += barcodeHeight + margin; // Move to the next row
-      }
-
-      // Add new page if needed
-      if (y + barcodeHeight + margin > doc.internal.pageSize.height) {
-        doc.addPage();
-        x = margin;
-        y = margin;
-      }
+  // Add barcodes to PDF
+  this.generatedBarcodes.forEach((code) => {
+    const canvas = document.createElement('canvas');
+    JsBarcode(canvas, code, {
+      format: 'CODE39',
+      displayValue: true,
+      width: 1, // Narrower lines for smaller size
+      height: barcodeHeight, // Shorter height
+      fontSize: 18, // Smaller font size
+      background: "#f5f5f5",
     });
 
-    doc.save('barcodes.pdf');
-  }
+    const imgData = canvas.toDataURL('image/png');
 
+    // Add image to PDF
+    doc.addImage(imgData, 'PNG', margin, y, barcodeWidth, barcodeHeight);
 
-  // Generate PDF and automatically trigger print dialog
+    // Update y for next barcode
+    y += barcodeHeight + margin; // Move down for the next barcode
+
+    // Add new page if needed
+    if (y + barcodeHeight + margin > doc.internal.pageSize.height) {
+      doc.addPage();
+      y = margin; // Reset y position for new page
+    }
+  });
+
+  doc.save('barcodes.pdf');
+}
+
+  // Print barcodes
   printBarcodes() {
     const doc = new jsPDF();
-    const margin = 10;
-    const pageWidth = doc.internal.pageSize.width;
-    const colWidth = (pageWidth - 3 * margin) / 2; // Two columns with margins
-    let x = margin;
-    let y = margin;
-    const barcodeHeight = 25; // Adjust height for smaller barcode
-    const barcodeWidth = colWidth - margin; // Adjust width for smaller barcode
-
-    // Add barcodes to PDF
-    this.generatedBarcodes.forEach((code, index) => {
-      const canvas = document.createElement('canvas');
-      JsBarcode(canvas, code, {
-        format: 'CODE39',
-        displayValue: true,
-        width: 1, // Narrower lines for smaller size
-        height: barcodeHeight, // Shorter height
-        fontSize: 12, // Smaller font size
-        background: "#f5f5f5",
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // Add image to PDF
-      doc.addImage(imgData, 'PNG', x, y, barcodeWidth, barcodeHeight);
-
-      // Update x and y for next barcode
-      if (index % 2 === 0) {
-        x += colWidth; // Move to the next column
-      } else {
-        x = margin; // Reset to the first column
-        y += barcodeHeight + margin; // Move to the next row
-      }
-
-      // Add new page if needed
-      if (y + barcodeHeight + margin > doc.internal.pageSize.height) {
-        doc.addPage();
-        x = margin;
-        y = margin;
-      }
-    });
-
-    // Open the print dialog for the generated PDF
-    doc.autoPrint();  // This triggers the print dialog automatically
-    window.open(doc.output('bloburl'));  // Opens the PDF in a new tab and directly prints it
+    this.generatePDF();
+    window.open(doc.output('bloburl')); // Opens the PDF for printing
   }
 }
