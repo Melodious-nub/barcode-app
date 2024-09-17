@@ -26,7 +26,8 @@
                 </div>
 
                 <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-primary btn-sm">Generate Barcodes</button>
+                    <button *ngIf="!barcodesGenerated" type="submit" class="btn btn-primary btn-sm">Generate Barcodes</button>
+                    <button *ngIf="barcodesGenerated" type="button" class="btn btn-danger btn-sm" (click)="resetBarcodeGeneration()">New Barcode Generation</button>
                 </div>
             </form>
         </div>
@@ -37,12 +38,13 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between">
                 <h4 class="card-title">Generated Barcodes</h4>
-                <!-- Centered Download Button -->
+                <!-- Centered Download and Print Buttons -->
                 <div>
-                    <button class="btn btn-success btn-sm" (click)="generatePDF()">Download PDF</button>
+                    <button class="btn btn-success btn-sm me-2" (click)="generatePDF()">Download PDF</button>
+                    <button class="btn btn-secondary btn-sm" (click)="printBarcodes()">Print Barcodes</button>
                 </div>
             </div>
-            <div class="card-body">
+            <div id="barcodePrintSection" class="card-body">
                 <div class="row">
                     <div *ngFor="let barcode of generatedBarcodes; let i = index" class="col-md-3 mb-2">
                         <canvas [attr.id]="'barcodeCanvas' + i"></canvas>
